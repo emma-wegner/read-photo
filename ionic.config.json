@@ -1,0 +1,8 @@
+{
+  "name": "readPhoto",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular",
+  "id": "bc1d7925"
+}
