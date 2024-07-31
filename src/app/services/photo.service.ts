@@ -29,7 +29,6 @@ export class PhotoService {
   });
   // photos
   public photos: UserPhoto[] = [];
-  private PHOTO_STORAGE: string = 'photos';
   constructor() { }
 
   public async addNewToGallery() {
@@ -44,10 +43,6 @@ export class PhotoService {
     const savedImageFile = await this.savePicture(capturedPhoto);
     this.photos.unshift(savedImageFile);
 
-    Preferences.set({
-      key: this.PHOTO_STORAGE,
-      value: JSON.stringify(this.photos),
-    });
   }
 
   private async savePicture(photo: Photo) {
@@ -118,8 +113,6 @@ export class PhotoService {
 
   public async loadSaved() {
     // Retrieve cached photo array data
-    const { value } = await Preferences.get({ key: this.PHOTO_STORAGE });
-    this.photos = (value ? JSON.parse(value) : []) as UserPhoto[];
   
     for (let photo of this.photos) {
       // Read each saved photo's data from the Filesystem
