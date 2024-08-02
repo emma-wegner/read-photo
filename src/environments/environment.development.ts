@@ -1,3 +1,3 @@
 export const environment = {
-    API_KEY: "<Your API KEY>",
+    API_KEY: "<Your-API-KEY>",
   };

@@ -71,6 +71,11 @@ export class PhotoService {
       ];
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
+      const descriptElement: HTMLElement | null = document.getElementById('descript');
+     if (descriptElement) {
+     descriptElement.innerHTML = response.text();
+     
+     }
       console.log(response.text());
     } catch (error) {
       console.error('Error converting file to Base64', error);
