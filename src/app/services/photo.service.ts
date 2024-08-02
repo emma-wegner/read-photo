@@ -9,7 +9,9 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PhotoService {
-//gen AI
+  public photos: UserPhoto[] = [];
+  private PHOTO_STORAGE: string = 'photos';
+  constructor() { }
   genAI = new GoogleGenerativeAI(environment.API_KEY);
   generationConfig = {
     safetySettings: [
@@ -24,13 +26,7 @@ export class PhotoService {
     maxOutputTokens: 100, // limit output
   };
   model = this.genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash'
-    
-  });
-  // photos
-  public photos: UserPhoto[] = [];
-  constructor() { }
-
+  model: 'gemini-1.5-flash'})
   public async addNewToGallery() {
     // Take a photo
     const capturedPhoto = await Camera.getPhoto({
@@ -41,22 +37,25 @@ export class PhotoService {
   
     // Save the picture and add it to photo collection
     const savedImageFile = await this.savePicture(capturedPhoto);
-    this.photos.unshift(savedImageFile);
+
+    Preferences.set({
+      key: this.PHOTO_STORAGE,
+      value: JSON.stringify(this.photos),
+    });
 
   }
 
   private async savePicture(photo: Photo) {
     // Convert photo to base64 format, required by Filesystem API to save
     const base64Data = await this.readAsBase64(photo);
-  
-    //  ***gemini ai ***
+
     try {
-      let imageBase64 = base64Data;
-    
+      let imageBase64 = base64Data.slice(23)
+       console.log(imageBase64)
       // Check for successful conversion to Base64
       if (typeof imageBase64 !== 'string') {
         console.error('Image conversion to Base64 failed.');
-       
+        return;
       }
       // Model initialisation missing for brevity
       let prompt = [
@@ -67,7 +66,7 @@ export class PhotoService {
           },
         },
         {
-          text: 'Provide a recipe.',
+          text: 'Describe image:',
         },
       ];
       const result = await this.model.generateContent(prompt);
@@ -76,7 +75,6 @@ export class PhotoService {
     } catch (error) {
       console.error('Error converting file to Base64', error);
     }
-
     // Write the file to the data directory
     const fileName = Date.now() + '.jpeg';
     const savedFile = await Filesystem.writeFile({
@@ -113,7 +111,10 @@ export class PhotoService {
 
   public async loadSaved() {
     // Retrieve cached photo array data
+    const { value } = await Preferences.get({ key: this.PHOTO_STORAGE });
+    this.photos = (value ? JSON.parse(value) : []) as UserPhoto[];
   
+    // more to come...
     for (let photo of this.photos) {
       // Read each saved photo's data from the Filesystem
       const readFile = await Filesystem.readFile({
@@ -123,7 +124,7 @@ export class PhotoService {
     
       // Web platform only: Load the photo as base64 data
       photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
-    }
+    }    
   }
 }
 
